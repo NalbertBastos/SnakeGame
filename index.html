@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snake Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-board">
+        <canvas id="game-canvas" width="400" height="400"></canvas>
+    </div>
+    <div id="score">
+        <p id="scores">
+
+        </p>
+    </div>
+
+
+    <script>
+        // Configurações do jogo
+        const canvas = document.getElementById("game-canvas");
+        const ctx = canvas.getContext("2d");
+        const scoreElement = document.getElementById("score");
+        const box = 20;
+        const canvasSize = canvas.width / box;
+        let score = 0;
+
+        // Cobra
+        let snake = [];
+        snake[0] = { x: 10, y: 10 };
+
+        // Comida
+        let food = { x: Math.floor(Math.random() * canvasSize), y: Math.floor(Math.random() * canvasSize) };
+
+        // Direção
+        let direction;
+
+        // Captura das teclas
+        document.addEventListener("keydown", directionHandler);
+
+        function directionHandler(event) {
+            if (event.keyCode === 37 && direction !== "right") {
+                direction = "left";
+            } else if (event.keyCode === 38 && direction !== "down") {
+                direction = "up";
+            } else if (event.keyCode === 39 && direction !== "left") {
+                direction = "right";
+            } else if (event.keyCode === 40 && direction !== "up") {
+                direction = "down";
+            }
+        }
+
+        // Função para desenhar o jogo
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Desenha a cobra
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillStyle = i === 0 ? "#818181" : "#00ff00";
+                ctx.fillRect(snake[i].x * box, snake[i].y * box, box, box);
+            }
+
+            // Desenha a comida
+            ctx.fillStyle = "#ff0000";
+            ctx.fillRect(food.x * box, food.y * box, box, box);
+            
+
+            // Movimenta a cobra
+            let snakeX = snake[0].x;
+            let snakeY = snake[0].y;
+
+            if (direction === "left") snakeX--;
+            if (direction === "up") snakeY--;
+            if (direction === "right") snakeX++;
+            if (direction === "down") snakeY++;
+
+            // Colisão com a comida
+            if (snakeX === food.x && snakeY === food.y) {
+                score++;
+                food = { x: Math.floor(Math.random() * canvasSize), y: Math.floor(Math.random() * canvasSize) };
+                
+            } else {
+                snake.pop();
+            }
+
+
+            if (snakeX < 0 || snakeX >= canvasSize || snakeY < 0 || snakeY >= canvasSize) {
+            // Reinicia o jogo
+            clearInterval(game);
+            saveScore();
+            score = 0;
+            snake = [];
+            snake[0] = { x: 10, y: 10 };
+            direction = null;
+            food = { x: Math.floor(Math.random() * canvasSize), y: Math.floor(Math.random() * canvasSize) };
+            game = setInterval(drawGame, 200);
+        }
+
+        // Colisão com a própria cobra
+        for (let i = 1; i < snake.length; i++) {
+            if (snake[i].x === snakeX && snake[i].y === snakeY) {
+                // Reinicia o jogo
+                clearInterval(game);
+                saveScore();
+                score = 0;
+                snake = [];
+                snake[0] = { x: 10, y: 10 };
+                direction = null;
+                food = { x: Math.floor(Math.random() * canvasSize), y: Math.floor(Math.random() * canvasSize) };
+                game = setInterval(drawGame, 200);
+            }
+        }
+
+        // Cria a nova cabeça da cobra
+        const newHead = { x: snakeX, y: snakeY };
+        snake.unshift(newHead);
+
+        // Atualiza o placar
+        scoreElement.textContent = "Score: " + score;
+    }
+
+    // Inicia o jogo
+    let game = setInterval(drawGame, 200);
+
+    // Salva o score no armazenamento local
+    function saveScore() {
+        const highScore = localStorage.getItem("snake_highscore") || 0;
+        if (score > highScore) {
+            localStorage.setItem("snake_highscore", score);
+            alert("Novo recorde! Pontuação: " + score);
+        }
+    }
+
+</script>
+
+
+           
